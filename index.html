@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="el">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Η εφαρμογή μου</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Popup -->
+    <div id="popupMessage" class="popup"></div>
+
+    <!-- Μήνυμα καλωσορίσματος -->
+    <div id="welcome" class="welcome">
+      <!-- Τίτλος πάνω στο κέντρο -->
+      <div class="welcome-header">
+        <span style="font-size: 2.5em; margin-right: 10px">📚</span>
+        <h1>Υπηρεσία Εντύπων</h1>
+      </div>
+
+      <!-- Κουμπί συνέχεια -->
+      <button id="continueBtn" onclick="closeWelcome()">🐾 Συνέχεια</button>
+
+      <!-- Backup / Restore κουμπιά κάτω -->
+      <div id="backupButtons" class="backup-buttons">
+        <!-- Τα κουμπιά θα δημιουργούνται με JS -->
+      </div>
+    </div>
+
+    <!-- Περιεχόμενο -->
+    <div id="content" class="content">
+      <!-- <h2>Αρχική</h2>
+      <p>Αυτό είναι το περιεχόμενο της πρώτης καρτέλας.</p> -->
+    </div>
+
+    <div class="tabs">
+      <button class="active" onclick="showTab(0)">📦</button>
+      <button onclick="showTab(1)">👥</button>
+      <button onclick="showTab(2)">📑</button>
+      <button onclick="showTab(3)">🗞️</button>
+    </div>
+
+    <!-- Overlay για επιτυχία -->
+    <div
+      id="successOverlay"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      "
+    >
+      <div
+        style="
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: #2563eb;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          color: white;
+          font-size: 50px;
+        "
+      >
+        ✔
+      </div>
+    </div>
+
+    <!-- Firebase core -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+      window.FirebaseExports = {
+        initializeApp,
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+      };
+    </script>
+
+    <script src="script1.js"></script>
+    <script type="module" src="cloud-backup.js"></script>
+    <!-- <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js"></script> -->
+  </body>
+</html>

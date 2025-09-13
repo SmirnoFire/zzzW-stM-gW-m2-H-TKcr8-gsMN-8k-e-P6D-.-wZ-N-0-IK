@@ -1,0 +1,398 @@
+/* -------------------- Γενικά -------------------- */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background: #000000;
+  color: #ffffff;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow-x: hidden; /* Αποτροπή οριζόντιου scroll */
+}
+
+/* -------------------- Welcome -------------------- */
+/* Welcome container */
+#welcome {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* τίτλος πάνω, backup/restore κάτω */
+  align-items: center;
+  text-align: center;
+  color: #ffffff;
+  z-index: 10;
+
+  /* Background image */
+  background-image: url("Pic/viber_image_2025-09-11_15-55-20-842.jpg");
+  background-size: cover;
+  background-position: 45% center; /* λίγο δεξιά */
+  background-repeat: no-repeat;
+  padding: 20px 0;
+}
+
+/* Τίτλος */
+.welcome-header {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.welcome-header h1 {
+  margin: 0;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  font-style: italic;
+  font-size: 32px;
+}
+
+/* Κουμπί συνέχεια */
+#continueBtn {
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  font-size: 20px;
+  font-style: italic;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#continueBtn:hover {
+  background-color: #2563eb;
+}
+
+/* Backup / Restore κουμπιά κάτω */
+.backup-buttons {
+  display: flex;
+  gap: 15px; /* διάστημα ανάμεσα στα κουμπιά */
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.backup-buttons button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #1e3a8a;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+.backup-buttons button:hover {
+  background: #2563eb;
+}
+
+/* -------------------- Tabs -------------------- */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  background: #111111;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: auto;
+  max-width: 100%;
+}
+.tabs button {
+  flex: 1 1 auto;
+  font-size: 16px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+}
+.tabs button.active {
+  background: #2563eb;
+  font-weight: bold;
+}
+.tabs button:hover:not(.active) {
+  background: #1f2937;
+}
+
+/* -------------------- Content -------------------- */
+.content {
+  padding: 20px;
+  margin-bottom: 60px;
+  min-height: calc(100vh - 60px);
+  overflow-y: auto;
+  max-width: 100%;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* -------------------- Λίστες -------------------- */
+.list {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 10px;
+  max-width: 100%;
+}
+.list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  background: #1f1f1f;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 16px;
+  color: #ffffff;
+  max-width: 100%;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+.list li .deleteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.2s;
+  color: #ffffff;
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+}
+.list li .deleteBtn:hover {
+  color: #ff3333;
+}
+
+/* -------------------- Inputs & Buttons -------------------- */
+input,
+select {
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+  border: 1px solid #333333;
+  background: #1f1f1f;
+  color: #ffffff;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+}
+#addBtn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  max-width: 100%;
+  white-space: normal;
+}
+#addBtn:hover {
+  background: #1e40af;
+}
+#welcome #backupButtons button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+  max-width: 100%;
+  white-space: normal;
+}
+#welcome #backupButtons button:hover {
+  background: #2563eb;
+}
+
+/* -------------------- Εικόνες / αφίσες -------------------- */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  word-break: break-word;
+}
+
+/* -------------------- Poster Table -------------------- */
+#posterTable {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#posterTable th:first-child,
+#posterTable td:first-child {
+  width: 35%;
+  text-align: left;
+  padding-left: 10px;
+  word-break: break-word;
+}
+
+#posterTable th:nth-child(2),
+#posterTable th:nth-child(3),
+#posterTable th:nth-child(4),
+#posterTable td:nth-child(2),
+#posterTable td:nth-child(3),
+#posterTable td:nth-child(4) {
+  width: 21%;
+  text-align: center;
+}
+
+/* -------------------- Media Queries -------------------- */
+
+/* Κινητά μικρά (έως 480px) */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
+  #formSelect {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box; /* για να μετράει και padding */
+  }
+  .content {
+    padding: 10px;
+    margin-bottom: 70px;
+  }
+  .tabs button {
+    font-size: 14px;
+    padding: 8px 4px;
+  }
+  input,
+  select {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+  .list li {
+    font-size: 14px;
+    padding: 4px 6px;
+  }
+  .welcome button,
+  #addBtn,
+  #welcome #backupButtons button {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  /* Poster Table responsive */
+  #posterTable th:first-child,
+  #posterTable td:first-child {
+    width: 40%;
+  }
+  #posterTable th:nth-child(2),
+  #posterTable th:nth-child(3),
+  #posterTable th:nth-child(4),
+  #posterTable td:nth-child(2),
+  #posterTable td:nth-child(3),
+  #posterTable td:nth-child(4) {
+    width: 20%;
+  }
+}
+
+/* Tablets (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+  .content {
+    padding: 15px;
+    margin-bottom: 60px;
+  }
+  .tabs button {
+    font-size: 15px;
+    padding: 8px 6px;
+  }
+  input,
+  select {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+  .list li {
+    font-size: 15px;
+    padding: 5px 8px;
+  }
+  .welcome button,
+  #addBtn,
+  #welcome #backupButtons button {
+    font-size: 15px;
+    padding: 9px 14px;
+  }
+}
+
+/* Desktop (>768px) */
+@media (min-width: 769px) {
+  body {
+    font-size: 16px;
+  }
+  .content {
+    padding: 20px;
+  }
+  .tabs button {
+    font-size: 16px;
+    padding: 10px 8px;
+  }
+  input,
+  select {
+    font-size: 14px;
+    padding: 6px 10px;
+  }
+  .list li {
+    font-size: 16px;
+    padding: 6px 10px;
+  }
+  .welcome button,
+  #addBtn,
+  #welcome #backupButtons button {
+    font-size: 16px;
+    padding: 10px 16px;
+  }
+}
+/* Samsung Galaxy A52s περίπου */
+@media (max-width: 480px) {
+  .tabs button {
+    padding: 20px; /* μεγαλύτερο padding για κινητά */
+    font-size: 15px;
+  }
+}
+
+.fade {
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none; /* δεν πιάνεται αν είναι κρυφό */
+}
+
+.fade.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1e3a8a;
+  color: white;
+  padding: 12px 22px;
+  border-radius: 30px;
+  font-family: "Times New Roman", Times, serif; /* 👈 εδώ */
+  font-size: 18px;
+  font-style: italic;
+  z-index: 2000;
+  text-align: center;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.popup.show {
+  display: block;
+  opacity: 1;
+}
