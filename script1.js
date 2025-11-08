@@ -753,7 +753,7 @@ function showTab(index) {
             <th>🗞️ Αφίσες</th>
             <th>📖 Ανοιχτές</th>
             <th>📕 Κλειστές</th>
-            <th> 🖊️ / 🗑️ Διαγραφή/ Min eisai san kako psofo na exeis...</th>
+            <th> 🖊️ / 🗑️ Διαγραφή/ Min eisai san kako psofo na exeis...@@@@</th>
           </tr>
         </thead>
         <tbody></tbody>
