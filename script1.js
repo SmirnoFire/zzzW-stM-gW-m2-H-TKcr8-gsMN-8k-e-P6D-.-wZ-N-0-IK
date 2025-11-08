@@ -753,7 +753,7 @@ function showTab(index) {
             <th>🗞️ Αφίσες</th>
             <th>📖 Ανοιχτές</th>
             <th>📕 Κλειστές</th>
-            <th> 🖊️ / 🗑️ Διαγραφή</th>
+            <th> 🖊️ / 🗑️ Διαγραφή/ @@@Stef</th>
           </tr>
         </thead>
         <tbody></tbody>
