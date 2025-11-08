@@ -59,22 +59,6 @@ function showTabs() {
 }
 showTabsBtn.addEventListener("click", () => showTabs());
 
-content.addEventListener("scroll", () => {
-  const activeTabIndex = Array.from(tabs).findIndex((btn) =>
-    btn.classList.contains("active")
-  );
-  if (activeTabIndex === 3) {
-    // Αφίσες
-    const scrollTop = content.scrollTop;
-
-    if (!tabsHidden && scrollTop > 10) {
-      hideTabs();
-      tabsHidden = true;
-    }
-    // δεν εμφανίζονται αυτόματα τα tabs όταν κάνεις scroll προς τα πάνω
-  }
-});
-
 function hideTabs() {
   tabsContainer.style.transform = "translateY(100%)";
   showTabsBtn.style.display = "block"; // εμφανίζεται μόνο όταν κρύψεις τα tabs
@@ -231,18 +215,37 @@ function showTab(index) {
   // --- Παραγγελίες
   if (index === 0) {
     content.innerHTML = `
-    <p style="font-size:20px;font-family:'Comic Sans MS';font-weight:bold;">Διάλεξε όνομα και έντυπο:</p>
-    
-    <div style="display:flex;gap:10px;margin-bottom:10px;align-items:center;">
-      <select id="nameSelect"><option value="">-- Επιλογή ονόματος --</option></select>
-      <select id="formSelect"><option value="">-- Επιλογή εντύπου --</option></select>
+    <p style="font-size:20px;font-family:'Comic Sans MS';font-weight:bold;">
+      Διάλεξε όνομα, έντυπο και ποσότητα:
+    </p>
+
+    <div class="order-inputs" style="margin-bottom:10px;">
+      <select id="nameSelect">
+        <option value="">-- Όνομα --</option>
+      </select>
+
+      <select id="formSelect">
+        <option value="">-- Έντυπο --</option>
+      </select>
+
+<select id="quantitySelect">
+  <option value="-">-</option>
+  ${Array.from(
+    { length: 20 },
+    (_, i) => `<option value="${i + 1}">${i + 1}</option>`
+  ).join("")}
+</select>
+
     </div>
 
     <div style="display:flex; gap:10px; margin-bottom:10px; align-items:center;">
-  <button id="addBtn" style="font-family:'Comic Sans MS'; font-size:16px; font-weight:bold; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; background:#2563eb; color:#fff;">Προσθήκη</button>
-  <button id="totalsBtn" style="font-family:'Comic Sans MS'; font-size:16px; font-weight:bold; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; background:#2563eb; color:#fff;">Σύνολα</button>
-</div>
-
+      <button id="addBtn" style="font-family:'Comic Sans MS'; font-size:16px; font-weight:bold; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; background:#2563eb; color:#fff;">
+        ➕ Προσθήκη
+      </button>
+      <button id="totalsBtn" style="font-family:'Comic Sans MS'; font-size:16px; font-weight:bold; padding:6px 10px; border-radius:6px; border:none; cursor:pointer; background:#2563eb; color:#fff;">
+        📊 Σύνολα
+      </button>
+    </div>
 
     <ul id="pairList" class="list"></ul>
   `;
@@ -251,6 +254,70 @@ function showTab(index) {
     const formSelect = document.getElementById("formSelect");
     const pairList = document.getElementById("pairList");
     const addBtn = document.getElementById("addBtn");
+    addBtn.addEventListener("click", () => {
+      const name = nameSelect.value.trim();
+      const form = formSelect.value.trim();
+      const qtyValue = document.getElementById("quantitySelect").value;
+
+      if (!name || !form) {
+        alert("Επίλεξε όνομα και έντυπο πρώτα!");
+        return;
+      }
+
+      // Βρίσκουμε άτομο
+      let person = tabData[0].find((x) => x.name === name);
+      if (!person) {
+        person = { name, forms: [] };
+        tabData[0].push(person);
+      }
+
+      // ----------- ΠΕΡΙΠΤΩΣΗ ΠΑΥΛΑΣ (“-”) ------------
+      if (qtyValue === "-") {
+        // Αν υπάρχει ήδη με ποσότητα => μην το αλλάζεις
+        const existsWithQty = person.forms.findIndex((f) =>
+          f.startsWith(form + " x ")
+        );
+
+        if (existsWithQty >= 0) {
+          // υπάρχει ήδη ποσότητα → δεν αλλάζουμε
+        } else {
+          // Αν υπάρχει σκέτο, δεν προσθέτουμε δεύτερο
+          const existsPlain = person.forms.findIndex((f) => f === form);
+          if (existsPlain < 0) {
+            person.forms.push(form);
+          }
+        }
+      } else {
+        // ----------- ΠΕΡΙΠΤΩΣΗ ΠΟΣΟΤΗΤΑΣ ------------
+        const qty = parseInt(qtyValue, 10);
+
+        // Αν υπάρχει σκέτο → αντικατάσταση με ποσότητα
+        const existsPlain = person.forms.findIndex((f) => f === form);
+        if (existsPlain >= 0) {
+          person.forms[existsPlain] = `${form} x ${qty}`;
+        } else {
+          // Αν υπάρχει με ποσότητα → άθροισε
+          const existsWithQty = person.forms.findIndex((f) =>
+            f.startsWith(form + " x ")
+          );
+
+          if (existsWithQty >= 0) {
+            const currentQty = parseInt(
+              person.forms[existsWithQty].split(" x ")[1],
+              10
+            );
+            person.forms[existsWithQty] = `${form} x ${currentQty + qty}`;
+          } else {
+            // δεν υπήρχε καθόλου
+            person.forms.push(`${form} x ${qty}`);
+          }
+        }
+      }
+
+      saveData();
+      updateList();
+    });
+
     const totalsBtn = document.getElementById("totalsBtn");
 
     [addBtn, totalsBtn].forEach((btn) =>
@@ -274,11 +341,14 @@ function showTab(index) {
     // --- totals button ---
     totalsBtn.addEventListener("click", () => {
       const formCounts = {};
-      tabData[0].forEach((order) =>
+
+      tabData[0].forEach((order) => {
         (order.forms || []).forEach((f) => {
-          formCounts[f] = (formCounts[f] || 0) + 1;
-        })
-      );
+          const [formName, qtyStr] = f.split(" x ");
+          const qty = parseInt(qtyStr) || 1; // αν δεν υπάρχει, 1
+          formCounts[formName] = (formCounts[formName] || 0) + qty;
+        });
+      });
 
       if (Object.keys(formCounts).length === 0) {
         alert("Δεν υπάρχουν έντυπα για υπολογισμό.");
@@ -307,13 +377,12 @@ function showTab(index) {
         minWidth: "250px",
         color: "#fff",
         fontSize: "16px",
-        fontFamily: "'Times New Roman', Times, serif", // 👈 εδώ αλλάξαμε
+        fontFamily: "'Times New Roman', Times, serif",
       });
 
-      // ΜΟΝΟ λίστα με έντυπο και πόσα έχει
       Object.entries(formCounts).forEach(([form, count], idx) => {
         const p = document.createElement("p");
-        p.textContent = `${form}: ${count}`;
+        p.textContent = `${form}: ${count}`; // εμφανίζει συνολική ποσότητα
         p.style.margin = "4px 0";
         p.style.padding = "4px";
         p.style.background = idx % 2 === 0 ? "#2a2a2a" : "#333";
@@ -331,7 +400,7 @@ function showTab(index) {
         borderRadius: "6px",
         cursor: "pointer",
         padding: "6px 10px",
-        fontFamily: "'Times New Roman', Times, serif", // 👈 ίδιο και στο κουμπί
+        fontFamily: "'Times New Roman', Times, serif",
       });
       closeBtn.onclick = () => document.body.removeChild(overlay);
       box.appendChild(closeBtn);
@@ -401,9 +470,117 @@ function showTab(index) {
           () => (delBtn.style.color = "#fff")
         );
         delBtn.addEventListener("click", () => {
-          tabData[0].splice(idx, 1);
-          saveData();
-          updateList();
+          // ✅ Αν υπάρχει μόνο 1 έντυπο → διαγραφή χωρίς popup
+          if (item.forms.length <= 1) {
+            tabData[0].splice(idx, 1);
+            saveData();
+            updateList();
+            return;
+          }
+
+          // ✅ ΠΑΝΩ ΑΠΟ 1 → δείξε popup
+          const overlay = document.createElement("div");
+          Object.assign(overlay.style, {
+            position: "fixed",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: "500",
+          });
+
+          const box = document.createElement("div");
+          Object.assign(box.style, {
+            background: "#1f1f1f",
+            padding: "20px",
+            borderRadius: "10px",
+            minWidth: "300px",
+            color: "#fff",
+            fontSize: "16px",
+            fontFamily: "'Times New Roman', Times, serif",
+          });
+
+          const title = document.createElement("p");
+          title.textContent = `Διαγραφή για ${item.name}:`;
+          title.style.fontWeight = "bold";
+          box.appendChild(title);
+
+          // Checkbox για κάθε έντυπο
+          const formCheckboxes = [];
+          item.forms.forEach((form, i) => {
+            const label = document.createElement("label");
+            label.style.display = "block";
+            const checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = i;
+            formCheckboxes.push(checkbox);
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(" " + form));
+            box.appendChild(label);
+          });
+
+          // Checkbox για διαγραφή όλου
+          const deleteAllLabel = document.createElement("label");
+          deleteAllLabel.style.display = "block";
+          const deleteAllCheckbox = document.createElement("input");
+          deleteAllCheckbox.type = "checkbox";
+          deleteAllLabel.appendChild(deleteAllCheckbox);
+          deleteAllLabel.appendChild(
+            document.createTextNode(" Διαγραφή ολόκληρου του κελιού")
+          );
+          box.appendChild(deleteAllLabel);
+
+          // Κουμπί επιβεβαίωσης
+          const confirmBtn = document.createElement("button");
+          confirmBtn.textContent = "Διαγραφή";
+          Object.assign(confirmBtn.style, {
+            marginTop: "10px",
+            background: "#ff3333",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            padding: "6px 10px",
+          });
+          confirmBtn.onclick = () => {
+            if (deleteAllCheckbox.checked) {
+              tabData[0].splice(idx, 1);
+            } else {
+              // Διαγραφή επιλεγμένων εντύπων
+              formCheckboxes.forEach((cb, i) => {
+                if (cb.checked) {
+                  item.forms.splice(cb.value, 1);
+                }
+              });
+            }
+            saveData();
+            updateList();
+            document.body.removeChild(overlay);
+          };
+          box.appendChild(confirmBtn);
+
+          // Κουμπί ακύρωσης
+          const cancelBtn = document.createElement("button");
+          cancelBtn.textContent = "Άκυρο";
+          Object.assign(cancelBtn.style, {
+            marginTop: "10px",
+            marginLeft: "10px",
+            background: "#2563eb",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            padding: "6px 10px",
+          });
+          cancelBtn.onclick = () => document.body.removeChild(overlay);
+          box.appendChild(cancelBtn);
+
+          overlay.appendChild(box);
+          document.body.appendChild(overlay);
         });
 
         btnContainer.appendChild(greenBtn);
@@ -418,19 +595,19 @@ function showTab(index) {
       checkTabsVisibility();
     }
 
-    addBtn.onclick = () => {
-      const n = nameSelect.value,
-        f = formSelect.value;
-      if (!n || !f) return;
-      const existing = tabData[0].find((i) => i.name === n);
-      if (existing) {
-        if (!existing.forms.includes(f)) existing.forms.push(f);
-      } else {
-        tabData[0].push({ name: n, forms: [f] });
-      }
-      saveData();
-      updateList();
-    };
+    // addBtn.onclick = () => {
+    //   const n = nameSelect.value,
+    //     f = formSelect.value;
+    //   if (!n || !f) return;
+    //   const existing = tabData[0].find((i) => i.name === n);
+    //   if (existing) {
+    //     if (!existing.forms.includes(f)) existing.forms.push(f);
+    //   } else {
+    //     tabData[0].push({ name: n, forms: [f] });
+    //   }
+    //   saveData();
+    //   updateList();
+    // };
 
     updateList();
   }
@@ -450,6 +627,29 @@ function showTab(index) {
     const nameInput = document.getElementById("nameInput");
     const nameList = document.getElementById("nameList");
     const addBtn = document.getElementById("addBtn");
+    addBtn.addEventListener("click", () => {
+      const name = nameSelect.value.trim();
+      const form = formSelect.value.trim();
+      const qty = document.getElementById("quantitySelect").value;
+
+      if (!name || !form) {
+        alert("Επίλεξε όνομα και έντυπο πρώτα!");
+        return;
+      }
+
+      // Αν το όνομα δεν υπάρχει, πρόσθεσέ το
+      let person = tabData[0].find((x) => x.name === name);
+      if (!person) {
+        person = { name, forms: [] };
+        tabData[0].push(person);
+      }
+
+      // Πρόσθεσε έντυπο με ποσότητα (π.χ. "ΕΤΥ-12 x 3")
+      person.forms.push(`${form} x ${qty}`);
+
+      saveData();
+      updateList();
+    });
 
     function updateList() {
       nameList.innerHTML = "";
@@ -513,29 +713,48 @@ function showTab(index) {
   // --- Αφίσες
   else if (index === 3) {
     content.innerHTML = `
-    <p style="font-family:'Comic Sans MS', cursive,sans-serif;font-size:20px;">Πρόσθεσε αφίσα στη λίστα:</p>
-    <form id="posterForm" style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px;">
-      <input type="text" id="nameInput" placeholder="Γράψε μια αφίσα" style="padding:6px;border-radius:6px;border:1px solid #444;background:#2a2a2a;color:#fff;" />
-      <div style="display:flex;gap:10px;">
-        <select id="numberSelect" style="flex:1;padding:6px;border-radius:6px;border:1px solid #444;background:#2a2a2a;color:#fff;">
+    <p style="font-family:'Comic Sans MS', cursive, sans-serif; font-size:20px;">Πρόσθεσε αφίσα στη λίστα:</p>
+    <form id="posterForm" style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px; max-width:100%;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <input 
+          type="text" 
+          id="nameInput" 
+          placeholder="Γράψε μια αφίσα" 
+          style="flex:1; min-width:180px; padding:6px; border-radius:6px; border:1px solid #444; background:#2a2a2a; color:#fff;"
+        />
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="🔍 Αναζήτηση..." 
+          style="flex:1; min-width:180px; padding:6px; border-radius:6px; border:1px solid #444; background:#2a2a2a; color:#fff;"
+        />
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <select id="numberSelect" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#2a2a2a; color:#fff;">
           <option value="">-- Αριθμός --</option>
           ${Array.from(
             { length: 10 },
             (_, i) => `<option value="${i + 1}">${i + 1}</option>`
           ).join("")}
         </select>
-        <select id="statusSelect" style="flex:1;padding:6px;border-radius:6px;border:1px solid #444;background:#2a2a2a;color:#fff;">
+        <select id="statusSelect" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#2a2a2a; color:#fff;">
           <option value="">-- Επιλογή τύπου --</option>
           <option value="Ανοιχτές">Ανοιχτές</option>
           <option value="Κλειστές">Κλειστές</option>
         </select>
-        <button type="submit" id="addBtn" style="background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;padding:6px 10px;">Προσθήκη</button>
+        <button type="submit" id="addBtn" style="background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer; padding:6px 10px;">Προσθήκη</button>
       </div>
     </form>
+
     <div style="flex:1; overflow-y:auto; height: calc(100vh - 120px);">
-      <table id="posterTable" style="width:100%;border-collapse:collapse;text-align:center;background:#1f1f1f;color:#fff;">
+      <table id="posterTable" style="width:100%; border-collapse:collapse; text-align:center; background:#1f1f1f; color:#fff;">
         <thead style="background:#2d2d2d;">
-          <tr><th>🗞️ Αφίσες</th><th>📖 Ανοιχτές</th><th>📕 Κλειστές</th><th>🧹Διαγραφή</th></tr>
+          <tr>
+            <th>🗞️ Αφίσες</th>
+            <th>📖 Ανοιχτές</th>
+            <th>📕 Κλειστές</th>
+            <th> 🖊️ / 🗑️ Διαγραφή</th>
+          </tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -544,11 +763,11 @@ function showTab(index) {
 
     hideTabs();
 
-    // Επιλογή όλων των κελιών της πρώτης γραμμής
+    // Στυλ επικεφαλίδων
     const headerCells = document.querySelectorAll("#posterTable thead th");
-    headerCells.forEach((th, idx) => {
-      th.style.padding = "10px 5px"; // padding πάνω/κάτω 10px, δεξιά/αριστερά 5px
-      th.style.textAlign = "center"; // κεντράρισμα κειμένου
+    headerCells.forEach((th) => {
+      th.style.padding = "10px 5px";
+      th.style.textAlign = "center";
     });
 
     const posterForm = document.getElementById("posterForm");
@@ -556,20 +775,25 @@ function showTab(index) {
     const numberSelect = document.getElementById("numberSelect");
     const statusSelect = document.getElementById("statusSelect");
     const tableBody = document.querySelector("#posterTable tbody");
+    const searchInput = document.getElementById("searchInput");
 
     function updateTable() {
       tableBody.innerHTML = "";
 
-      tabData[3].sort((a, b) => a.name.localeCompare(b.name, "el"));
+      const searchTerm = searchInput.value.trim().toLowerCase();
+
+      const filtered = tabData[3]
+        .sort((a, b) => a.name.localeCompare(b.name, "el"))
+        .filter((item) => item.name.toLowerCase().includes(searchTerm));
 
       let totalOpen = 0;
       let totalClosed = 0;
 
-      tabData[3].forEach((item, idx) => {
+      filtered.forEach((item, idx) => {
         const tr = document.createElement("tr");
-        // Εναλλαγή χρώματος φόντου για ευκολότερη ανάγνωση
         tr.style.background = idx % 2 === 0 ? "#1f1f1f" : "#2a2a2a";
-        tr.style.borderBottom = "1px solid #444"; // διαχωριστική γραμμή
+        tr.style.borderBottom = "1px solid #444";
+
         tr.innerHTML = `
       <td>${item.name}</td>
       <td>${item.open || ""}</td>
@@ -577,16 +801,44 @@ function showTab(index) {
       <td></td>
     `;
 
+        const actualIndex = tabData[3].findIndex((i) => i.name === item.name);
+
+        // ✅ υπολογισμός συνόλων
         totalOpen += item.open || 0;
         totalClosed += item.closed || 0;
 
+        // 🖊️ Επεξεργασία
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "🖊️";
+        Object.assign(editBtn.style, {
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontSize: "16px",
+          color: "#fff",
+        });
+        editBtn.addEventListener(
+          "mouseover",
+          () => (editBtn.style.color = "#1dd1a1")
+        );
+        editBtn.addEventListener(
+          "mouseout",
+          () => (editBtn.style.color = "#fff")
+        );
+        editBtn.addEventListener("click", () =>
+          openPosterEditPopup(item, actualIndex)
+        );
+
+        // 🗑️ Διαγραφή
         const delBtn = document.createElement("button");
         delBtn.textContent = "🗑️";
-        delBtn.style.background = "none";
-        delBtn.style.border = "none";
-        delBtn.style.cursor = "pointer";
-        delBtn.style.fontSize = "16px";
-        delBtn.style.color = "#fff";
+        Object.assign(delBtn.style, {
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontSize: "16px",
+          color: "#fff",
+        });
         delBtn.addEventListener(
           "mouseover",
           () => (delBtn.style.color = "#ff3333")
@@ -596,16 +848,17 @@ function showTab(index) {
           () => (delBtn.style.color = "#fff")
         );
         delBtn.addEventListener("click", () => {
-          tabData[3].splice(idx, 1);
+          tabData[3].splice(actualIndex, 1);
           saveData();
           updateTable();
         });
 
+        tr.children[3].appendChild(editBtn);
         tr.children[3].appendChild(delBtn);
         tableBody.appendChild(tr);
       });
 
-      // Προσθήκη σειράς συνολικών
+      // ✅ Σειρά συνόλων (εμφανίζεται πάντα)
       const totalRow = document.createElement("tr");
       totalRow.innerHTML = `
     <td style="font-weight:bold; color:#aaa; padding-top:10px;">Σύνολο:</td>
@@ -613,12 +866,15 @@ function showTab(index) {
     <td style="color:#aaa; padding-top:10px;">${totalClosed}</td>
     <td></td>
   `;
-      totalRow.style.borderTop = "2px solid #555"; // πιο έντονη διαχωριστική γραμμή
+      totalRow.style.borderTop = "2px solid #555";
       totalRow.style.background = "#1f1f1f";
       tableBody.appendChild(totalRow);
 
       checkTabsVisibility();
     }
+
+    updatePostersTable = updateTable;
+    let currentPosterIndex = null;
 
     function addItem() {
       const name = nameInput.value.trim();
@@ -646,15 +902,16 @@ function showTab(index) {
       nameInput.focus();
     }
 
-    // --- Prevent form submit από refresh
+    // --- αποφυγή refresh
     posterForm.addEventListener("submit", (e) => {
       e.preventDefault();
       addItem();
     });
 
-    updateTable();
+    // --- real-time αναζήτηση
+    searchInput.addEventListener("input", updateTable);
 
-    addBtn.addEventListener("click", addItem);
+    updateTable();
     nameInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") addItem();
     });
@@ -897,4 +1154,50 @@ function renderOrdersList() {
   checkTabsVisibility();
 }
 
+document.getElementById("cancelPosterEdit").onclick = closePosterEditPopup;
+
+let currentPosterIndex = null;
+
+function openPosterEditPopup(item, index) {
+  currentPosterIndex = index;
+
+  document.getElementById("editPosterName").value = item.name || "";
+  document.getElementById("editPosterOpen").value = item.open || 0;
+  document.getElementById("editPosterClosed").value = item.closed || 0;
+
+  document.getElementById("posterEditPopup").style.display = "flex";
+}
+
+function closePosterEditPopup() {
+  document.getElementById("posterEditPopup").style.display = "none";
+  currentPosterIndex = null;
+}
+
+document.getElementById("savePosterEdit").onclick = () => {
+  if (currentPosterIndex === null) return;
+
+  const newName = document.getElementById("editPosterName").value.trim();
+  const newOpen =
+    parseInt(document.getElementById("editPosterOpen").value) || 0;
+  const newClosed =
+    parseInt(document.getElementById("editPosterClosed").value) || 0;
+
+  if (!newName) return;
+
+  // ενημέρωση δεδομένων
+  tabData[3][currentPosterIndex].name = newName;
+  tabData[3][currentPosterIndex].open = newOpen;
+  tabData[3][currentPosterIndex].closed = newClosed;
+
+  saveData();
+
+  // ✅ αυτόματα update του πίνακα
+  if (typeof updatePostersTable === "function") updatePostersTable();
+
+  closePosterEditPopup();
+};
+
+let updatePostersTable; // global reference
+
+document.getElementById("cancelPosterEdit").onclick = closePosterEditPopup;
 //////////////////////////////////////////////////////////////////////////////////////

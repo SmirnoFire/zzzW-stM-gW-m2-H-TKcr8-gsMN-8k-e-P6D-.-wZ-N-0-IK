@@ -70,6 +70,27 @@
       </div>
     </div>
 
+    <!-- POPUP Επεξεργασίας Αφίσας -->
+    <div id="posterEditPopup" style="display: none">
+      <div class="popup-content">
+        <h2>✏️ Επεξεργασία Αφίσας</h2>
+
+        <label>Όνομα:</label>
+        <input id="editPosterName" type="text" />
+
+        <label>Ανοιχτές:</label>
+        <input id="editPosterOpen" type="number" min="0" />
+
+        <label>Κλειστές:</label>
+        <input id="editPosterClosed" type="number" min="0" />
+
+        <div class="popup-buttons">
+          <button id="savePosterEdit">💾 Αποθήκευση</button>
+          <button id="cancelPosterEdit">❌ Άκυρο</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Firebase core -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
